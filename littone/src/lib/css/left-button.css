@@ -1,0 +1,24 @@
+
+.left-button {
+    all: unset; /* Remove all default styles */
+    background-color: #0c0c0d;
+    border: 1px solid #fafafa;
+    padding: 1px 6px;
+   
+    display: inline-block;
+    text-align: center;
+    cursor: pointer;
+    height: 18px;
+}
+.left-button:hover {
+    all: unset; /* Remove all default styles */
+    background-color: #fafafa;
+    border: 1px solid #0c0c0d;
+    padding: 1px 6px;
+   
+    color: #0c0c0d;
+    display: inline-block;
+    text-align: center;
+    cursor: pointer;
+    height: 18px;
+}
