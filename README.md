@@ -1,2 +1,2 @@
 ### LitTone
-A RAW and HDR images lean and simple photo editor 📷 
+A fast and lightweight RAW and HDR images editor 📷 

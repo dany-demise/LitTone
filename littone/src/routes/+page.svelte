@@ -162,11 +162,11 @@
 </div>
 
 <style>
-	@import url('$lib/css/style.less');
+	@import url('$lib/assets/css/style.less');
 	/* Local CSS */
 	@font-face {
 		font-family: 'VideowayMono';
-		src: url('$lib/css/fonts/VideowayMono.ttf') format('truetype');
+		src: url('$lib/assets/fonts/VideowayMono.ttf') format('truetype');
 		font-weight: normal;
 		font-style: normal;
 	}
