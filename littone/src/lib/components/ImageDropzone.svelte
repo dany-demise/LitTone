@@ -94,8 +94,8 @@
 				console.log(
 					`Got processed image from worker: ${width}x${height}, colors=${colors}, size=${imageSize} bytes`
 				);
-				controller.rawImage = processedImageData;
-        await insertThumbnailImage();
+				controller.setRawImage(processedImageData, width, height);
+				await insertThumbnailImage();
 
 				// outputDiv.textContent = `Processed Image: ${width} x ${height}, Colors=${colors}, Size=${imageSize} bytes`;
 			} else if (type === 'error') {
@@ -132,28 +132,77 @@
 	}
 
 	async function insertThumbnailImage() {
-		// Assume you have a function that wraps your Emscripten _getThumbnail binding
-		// and returns a Promise resolving to an ArrayBuffer containing the thumbnail data.
-		const thumbnailData = controller.rawImage;
-    console.log(thumbnailData);
-		if (!thumbnailData) {
+		// Retrieve raw image data (expected to be a Uint16Array along with dimensions)
+		const rawImage = controller.rawImage;
+		console.log(rawImage);
+		if (!rawImage) {
 			console.error('Thumbnail data not available');
 			return;
 		}
 
-		// Create a Blob from the thumbnail data (adjust the MIME type if needed)
-		const thumbBlob = new Blob([thumbnailData.data], { type: 'image/jpeg' });
-		const thumbUrl = URL.createObjectURL(thumbBlob);
+		// Extract image data and dimensions.
+		const processedImageArray = rawImage.data;
+		const width = rawImage.width;
+		const height = rawImage.height;
 
-		// Create an image element for the thumbnail
-		const imgElem = document.createElement('img');
-		imgElem.src = thumbUrl;
-		imgElem.alt = 'Thumbnail image';
-		imgElem.style.maxWidth = '100%';
-		imgElem.style.maxHeight = '100%';
+		// Clear the container where the image will be displayed.
+		// @ts-ignore
+		gridContainer.innerHTML = '';
+    // @ts-ignore
+    dropzoneText.style.display = 'none';
+    // document.getElementById('dropzone-text').hidden = true;
 
-		// Append the thumbnail image into the grid container inside the dropzone
-		gridContainer?.appendChild(imgElem);
+		// Create and configure the canvas.
+		const canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		// @ts-ignore
+		gridContainer.appendChild(canvas);
+
+		const ctx = canvas.getContext('2d');
+		if (ctx) {
+			const imageData = ctx.createImageData(width, height);
+
+			// Loop through the processed image array, converting each 16-bit value to 8-bit by dividing by 256.
+			// The processedImageArray is assumed to have values for R, G, and B consecutively.
+			for (let i = 0, j = 0; i < processedImageArray.length; i += 3, j += 4) {
+				imageData.data[j] = processedImageArray[i] / 256; // R
+				imageData.data[j + 1] = processedImageArray[i + 1] / 256; // G
+				imageData.data[j + 2] = processedImageArray[i + 2] / 256; // B
+				imageData.data[j + 3] = 255; // A (fully opaque)
+			}
+
+			// Render the image data onto the canvas.
+			ctx.putImageData(imageData, 0, 0);
+		}
+		scaleCanvasToFit(canvas, gridContainer);
+	}
+
+	// @ts-ignore
+	function scaleCanvasToFit(canvas, container) {
+		// Force the canvas to be block-level & centered
+		canvas.style.display = 'block';
+		canvas.style.margin = '0 auto';
+
+		const containerWidth = container.clientWidth;
+		const containerHeight = container.clientHeight;
+		const canvasAspect = canvas.width / canvas.height;
+		const containerAspect = containerWidth / containerHeight;
+
+		// Decide whether we fill via height or width, then clamp with max-*
+		if (containerAspect > canvasAspect) {
+			// Container is relatively wider => fill container's height
+			canvas.style.width = 'auto';
+			canvas.style.height = '100%';
+		} else {
+			// Container is relatively taller => fill container's width
+			canvas.style.width = '100%';
+			canvas.style.height = 'auto';
+		}
+
+		// Also ensure it can’t overflow past container
+		canvas.style.maxWidth = (parseInt(containerWidth) - 10 * containerAspect).toString()  + 'px';
+		canvas.style.maxHeight = (parseInt(containerHeight) - 10).toString() + 'px';
 	}
 
 	// Extracted thumbnail logic + re-validate
@@ -334,7 +383,7 @@
 		border-radius: 0px;
 		position: relative;
 		background-color: #eee;
-		overflow: scroll;
+		overflow: auto;
 		cursor: pointer;
 		-ms-overflow-style: none;
 		scrollbar-width: none;
@@ -362,11 +411,21 @@
 	}
 
 	#gridContainer {
-		width: 100%;
-		height: 100%;
-		display: grid;
-		grid-auto-flow: row;
-		/* gap: 5px; */
+  width: 100%;
+  height: 100%;
+  /* Instead of display: grid, use a flex layout to center the child (canvas) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Optional: remove/adjust gap or margin if needed */
+}
+	:global(#gridContainer canvas) {
+		max-width: 100%;
+		max-height: 100%;
+		width: auto;
+		height: auto;
+		display: block;
+		margin: auto;
 	}
 
 	:global(.image-wrapper) {

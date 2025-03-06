@@ -24,7 +24,7 @@ export class Controller {
     get rawImage(): RawImage | undefined {
         return this._rawImage;
     }
-    set rawImage(data: Uint16Array) {
-        this._rawImage = new RawImage(data);
+    setRawImage(data: Uint16Array, width:number, height:number ) {
+        this._rawImage = new RawImage(data, width, height);
     }
 }
