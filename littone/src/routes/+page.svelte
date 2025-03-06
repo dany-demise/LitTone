@@ -6,6 +6,7 @@
 	import { onMount, setContext } from 'svelte';
 	import { writable } from 'svelte/store';
 	import ImageDropzone from '$lib/components/ImageDropzone.svelte';
+	import LeftPanel from '$lib/components/LeftPanel.svelte';
 
 	/**
 	 * @type {Controller}
@@ -158,7 +159,9 @@
 	</main>
 
 	<div class="resize-handle--x1" data-target=".right-sidebar"></div>
-	<aside class="right-sidebar style-4"></aside>
+	<aside class="right-sidebar style-4">
+		<LeftPanel/>
+	</aside>
 </div>
 
 <style>

@@ -104,12 +104,12 @@
 	}
 
 	/**
-	 * @type {any[]}
+	 * @type {File[]}
 	 */
-	let currentFiles = []; // <<--- our global array
+	let currentFiles = [];
 
 	/**
-	 * @param {Iterable<any> | ArrayLike<any>} files
+	 * @param {Iterable<File>} files
 	 */
 	function processFiles(files) {
 		// If we drop or select new files, add them to the global array:
@@ -150,7 +150,6 @@
 		gridContainer.innerHTML = '';
     // @ts-ignore
     dropzoneText.style.display = 'none';
-    // document.getElementById('dropzone-text').hidden = true;
 
 		// Create and configure the canvas.
 		const canvas = document.createElement('canvas');
@@ -296,7 +295,7 @@
 	let imageSize = '';
 	let aperture = '';
 	let iso = '';
-	let shutterSpeeds = '';
+	let shutterSpeed = '';
 
 	function clearImages() {
 		// Optional: stop any ongoing processing or workers if needed
@@ -339,16 +338,14 @@
 			on:click={clearImages}
 			href="#0"
 			class="small text-light clear-img-btn"
-			style="text-decoration:none;">Clear images</a
+			style="text-decoration:none; font-size:x-small">Clear images</a
 		>
 	</div>
 
+  <br>
+
 	<div id="bracket-params" class="text-light" style="padding-top:0px;">
 		<ul>
-			<li>
-				<span class="left"># of images</span>
-				<span class="right">{numImages}</span>
-			</li>
 			<li>
 				<span class="left">Camera model</span>
 				<span class="right">{cameraModel}</span>
@@ -366,8 +363,8 @@
 				<span class="right">{iso}</span>
 			</li>
 			<li>
-				<span class="left">Shutter speeds</span>
-				<span class="right">{shutterSpeeds}</span>
+				<span class="left">Shutter speed</span>
+				<span class="right">{shutterSpeed}</span>
 			</li>
 		</ul>
 	</div>
