@@ -1,5 +1,5 @@
 import type { HableFilmicParams } from '$lib/domain/interfaces';
-import createFilmicModule from '$lib/domain/models/image-processing/filmic_hable_tonemap/filmic_es6';
+import createFilmicModule from '$lib/domain/image-processing/filmic-hable-tonemap/filmic_es6';
 
 export class HableFilmicTonemap {
     private filmicModule:any | null = null;

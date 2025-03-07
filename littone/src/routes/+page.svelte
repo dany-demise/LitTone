@@ -6,7 +6,8 @@
 	import { onMount, setContext } from 'svelte';
 	import { writable } from 'svelte/store';
 	import ImageDropzone from '$lib/components/ImageDropzone.svelte';
-	import LeftPanel from '$lib/components/LeftPanel.svelte';
+	import RightPanel from '$lib/components/RightPanel.svelte';
+	import ImagePanel from '$lib/components/ImagePanel.svelte';
 
 	/**
 	 * @type {Controller}
@@ -155,12 +156,14 @@
 			<!-- <button on:click={onThreeSixtyClick} class="top-button">360°</button> -->
 		</div>
 
-		<div class="editor-panel" style="flex: 1;"></div>
+		<div class="editor-panel" style="flex: 1;">
+			<ImagePanel/>
+		</div>
 	</main>
 
 	<div class="resize-handle--x1" data-target=".right-sidebar"></div>
 	<aside class="right-sidebar style-4">
-		<LeftPanel/>
+		<RightPanel/>
 	</aside>
 </div>
 

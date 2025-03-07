@@ -30,8 +30,8 @@ self.onmessage = async (event) => {
       Module._setParams({
         "use_camera_wb" : false,
         "use_auto_wb" : true,
-        "bright" : 1,
-        "dcb_iterations" : 1,
+        // "bright" : 1,
+        // "dcb_iterations" : 1,
       });
 
       // Call into Wasm
