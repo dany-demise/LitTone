@@ -1,20 +1,19 @@
 export class RawImage {
-    private _data: Uint16Array;
+    private _data: Float32Array;
     private _width: number;
     private _height: number;
 
     constructor(data: Uint16Array, width: number, height: number) {
-        this._data = data;
+        this._data = new Float32Array(data.length);
+        for (let i = 0; i < data.length; i++) {
+            this._data[i] = data[i];
+        }
         this._width = width;
         this._height = height;
     }
 
-    get data(): Uint16Array {
+    get data(): Float32Array {
         return this._data;
-    }
-
-    set data(data: Uint16Array) {
-        this._data = data;
     }
 
     get width(): number {

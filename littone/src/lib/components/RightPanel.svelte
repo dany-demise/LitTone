@@ -57,8 +57,7 @@
     });
 
     function applyTonemap() {
-        controller.generateTonemapHableFilmic('image-canvas', hableParams);
-        console.log("Applied Hable Filmic Parameters", hableParams);
+        controller.generateTonemapHableFilmic(hableParams);
     }
 </script>
 

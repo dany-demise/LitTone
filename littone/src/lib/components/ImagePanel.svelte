@@ -29,7 +29,8 @@
     onMount(() => {
         controller = Controller.getInstance();
         controller.globalStore.set("resetZoom", resetCanvasZoom);
-        controller.globalStore.set("clearEditorPanel", clearEditorPanel);
+        controller.globalStore.set("clearImagePanel", clearImagePanel);
+        controller.globalStore.set("showImagePanel", showImagePanel);
         // @ts-ignore
         imagePanelCanvas = document.getElementById("image-canvas");
         controller.globalStore.set("getImagePanelCanvas", getImagePanelCanvas);
@@ -40,8 +41,11 @@
     function getImagePanelCanvas() {
         return imagePanelCanvas;
     }
-    function clearEditorPanel() {
+    function clearImagePanel() {
         imagePanelCanvas.hidden = true;
+    }
+    function showImagePanel() {
+        imagePanelCanvas.hidden = false;
     }
 
     let isMouseDown = false;
@@ -217,7 +221,7 @@
     <!-- The canvas -->
     <canvas
         id="image-canvas"
-        style="top: 0px;left: 0px;   border: 5px solid red;"
+        style="top: 0px;left: 0px;"
         width="100px"
         height="100px"
     >

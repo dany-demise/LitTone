@@ -94,8 +94,27 @@
 				console.log(
 					`Got processed image from worker: ${width}x${height}, colors=${colors}, size=${imageSize} bytes`
 				);
+
 				controller.setRawImage(processedImageData, width, height);
+				//  insere le thumbnail dans la dropzone
 				await insertThumbnailImage();
+				// genere une premiere tonemap avec parametres par defaut
+				const defaultHableParams = {
+					saturation: 1.0,
+					exposureBias: 0.0,
+					contrast: 1.0,
+					toeStrength: 0.0,
+					toeLength: 0.5,
+					shoulderStrength: 0.0,
+					shoulderLength: 0.5,
+					shoulderAngle: 0.0,
+					gamma: 1.0,
+					postGamma: 1.0
+				};
+				controller.generateTonemapHableFilmic(defaultHableParams);
+        // Configurer les parametres d affichage et afficher l image
+        controller.callStoreFunc('resetZoom');
+        controller.callStoreFunc('showImagePanel');
 
 				// outputDiv.textContent = `Processed Image: ${width} x ${height}, Colors=${colors}, Size=${imageSize} bytes`;
 			} else if (type === 'error') {
@@ -134,7 +153,6 @@
 	async function insertThumbnailImage() {
 		// Retrieve raw image data (expected to be a Uint16Array along with dimensions)
 		const rawImage = controller.rawImage;
-		console.log(rawImage);
 		if (!rawImage) {
 			console.error('Thumbnail data not available');
 			return;
@@ -148,8 +166,8 @@
 		// Clear the container where the image will be displayed.
 		// @ts-ignore
 		gridContainer.innerHTML = '';
-    // @ts-ignore
-    dropzoneText.style.display = 'none';
+		// @ts-ignore
+		dropzoneText.style.display = 'none';
 
 		// Create and configure the canvas.
 		const canvas = document.createElement('canvas');
@@ -200,7 +218,7 @@
 		}
 
 		// Also ensure it can’t overflow past container
-		canvas.style.maxWidth = (parseInt(containerWidth) - 10 * containerAspect).toString()  + 'px';
+		canvas.style.maxWidth = (parseInt(containerWidth) - 10 * containerAspect).toString() + 'px';
 		canvas.style.maxHeight = (parseInt(containerHeight) - 10).toString() + 'px';
 	}
 
@@ -311,10 +329,7 @@
 			dropzoneText.style.display = 'block';
 
 			// Reset any bracket info displayed
-			const clearEditorPanel = controller.globalStore.get('clearEditorPanel');
-			if (typeof clearEditorPanel === 'function') {
-				clearEditorPanel();
-			}
+			controller.callStoreFunc('clearImagePanel');
 		}
 	}
 </script>
@@ -342,7 +357,7 @@
 		>
 	</div>
 
-  <br>
+	<br />
 
 	<div id="bracket-params" class="text-light" style="padding-top:0px;">
 		<ul>
@@ -408,14 +423,14 @@
 	}
 
 	#gridContainer {
-  width: 100%;
-  height: 100%;
-  /* Instead of display: grid, use a flex layout to center the child (canvas) */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  /* Optional: remove/adjust gap or margin if needed */
-}
+		width: 100%;
+		height: 100%;
+		/* Instead of display: grid, use a flex layout to center the child (canvas) */
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		/* Optional: remove/adjust gap or margin if needed */
+	}
 	:global(#gridContainer canvas) {
 		max-width: 100%;
 		max-height: 100%;
