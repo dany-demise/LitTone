@@ -24,5 +24,6 @@ jobs:
 
     - name: Build
       run: |
+        cd littone && npm i @sveltejs/adapter-static
         cd littone && npm install
         cd littone && grunt
