@@ -3,6 +3,7 @@
 	import { onMount, tick, getContext, setContext } from 'svelte';
 	import { Controller } from '$lib/domain/controller';
 	import ExifReader from 'exifreader';
+	import { StringRounder } from '$lib/domain/utils/string-rounder';
 	// import zip from "$lib/domain/utils/zip";
 
 	/**
@@ -93,15 +94,16 @@
 
 	function setupLibrawWorker() {
 		librawWorker.onmessage = async (event) => {
-			const { type, width, height, colors, imageSize, buffer } = event.data;
+			const { type, width, height, colors, imageSize, cameraInfo, buffer } = event.data;
 
 			if (type === 'processed') {
 				// buffer is a transferred ArrayBuffer containing the processed image data
 				const processedImageData = new Uint16Array(buffer);
 
-				console.log(
-					`Got processed image from worker: ${width}x${height}, colors=${colors}, size=${imageSize} bytes`
-				);
+				// Add widht height to camera info for display
+				cameraInfo['width'] = width;
+				cameraInfo['height'] = height;
+				setCameraInfo(cameraInfo);
 
 				controller.setRawImage(processedImageData, width, height);
 				//  insere le thumbnail dans la dropzone
@@ -220,75 +222,6 @@
 		canvas.style.maxHeight = (parseInt(containerHeight) - 10).toString() + 'px';
 	}
 
-	// Extracted thumbnail logic + re-validate
-	function refreshThumbnailsAndValidate() {
-		// Hide dropzone text if there's at least one file
-		if (currentFiles.length > 0) {
-			// @ts-ignore
-			dropzoneText.style.display = 'none';
-		} else {
-			// @ts-ignore
-			dropzoneText.style.display = 'block';
-		}
-
-		// 1) Sort by file name
-		currentFiles.sort((a, b) => a.name.localeCompare(b.name));
-
-		// 2) Clear existing images from the grid
-		// @ts-ignore
-		gridContainer.innerHTML = '';
-
-		// 3) Build & display new thumbnails
-		currentFiles.forEach((file) => {
-			const reader = new FileReader();
-			reader.onload = function (event) {
-				const wrapper = document.createElement('div');
-				wrapper.classList.add('image-wrapper');
-
-				const img = document.createElement('img');
-				// @ts-ignore
-				img.src = event.target.result;
-
-				const overlay = document.createElement('div');
-				overlay.classList.add('image-overlay');
-
-				const deleteIcon = document.createElement('div');
-				deleteIcon.classList.add('delete-icon');
-				deleteIcon.innerHTML = 'X';
-
-				// On "X" click, remove the file from currentFiles, then re-validate
-				deleteIcon.addEventListener('click', async (e) => {
-					e.preventDefault();
-					e.stopPropagation();
-
-					// Remove this file from currentFiles
-					currentFiles = currentFiles.filter((cf) => cf !== file);
-
-					// Remove thumbnail from DOM
-					wrapper.remove();
-
-					// Show dropzone text if needed
-					if (currentFiles.length === 0) {
-						// @ts-ignore
-						dropzoneText.style.display = 'block';
-					}
-					// Also re-draw the grid columns/rows
-					updateGrid();
-				});
-
-				// overlay.appendChild(deleteIcon);
-				wrapper.appendChild(img);
-				wrapper.appendChild(overlay);
-				// @ts-ignore
-				gridContainer.appendChild(wrapper);
-
-				// Then update grid
-				updateGrid();
-			};
-			reader.readAsDataURL(file);
-		});
-	}
-
 	function updateGrid() {
 		// @ts-ignore
 		const count = gridContainer.children.length;
@@ -306,12 +239,30 @@
 	}
 
 	// Initialize all variables as empty strings
-	let numImages = '';
 	let cameraModel = '';
 	let imageSize = '';
 	let aperture = '';
 	let iso = '';
 	let shutterSpeed = '';
+
+	/**
+	 * @param {any} camInfos
+	 */
+	function setCameraInfo(camInfos) {
+		cameraModel = camInfos['cameraModel'];
+		imageSize = camInfos['width'] + ' x ' + camInfos['height'];
+		aperture = 'f/' + new StringRounder(parseFloat((camInfos['aperture']).toFixed(4))).toString();
+		iso = new StringRounder(camInfos['iso']).toString();
+		shutterSpeed = new StringRounder(camInfos['shutterSpeed']).toString();
+	}
+
+	function emptyCameraInfo() {
+		cameraModel = '';
+		imageSize = '';
+		aperture = '';
+		iso = '';
+		shutterSpeed = '';
+	}
 
 	function clearImages() {
 		// Optional: stop any ongoing processing or workers if needed
@@ -327,6 +278,7 @@
 			dropzoneText.style.display = 'block';
 
 			// Reset any bracket info displayed
+			emptyCameraInfo();
 			controller.callStoreFunc('clearImagePanel');
 			// Desactiver bouton Reset zoom
 			controller.callStoreFunc('deactivateResetZoomButton');
@@ -375,7 +327,7 @@
 	<div id="dropzone">
 		<div id="dropzone-text">
 			{#if imageIsLoading}
-				<small class="loader small"></small>
+				<small class="loader"></small>
 			{:else}
 				<small>Drop image here<br />or click to add</small>
 			{/if}
@@ -403,7 +355,7 @@
 	<div id="bracket-params" class="text-light" style="padding-top:0px;">
 		<ul>
 			<li>
-				<span class="left">Camera model</span>
+				<span class="left">Camera</span>
 				<span class="right">{cameraModel}</span>
 			</li>
 			<li>

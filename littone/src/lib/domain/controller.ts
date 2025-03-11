@@ -70,11 +70,11 @@ export class Controller {
             redWhiteBalance: 1.0,
             greenWhiteBalance: 1.0,
             blueWhiteBalance: 1.0,
-            toeStrength: 0.25,
-            toeLength: 0.5,
-            shoulderStrength: 0.25,
-            shoulderLength: 0.5,
-            shoulderAngle: 0.25,
+            toeStrength: 0.0,
+            toeLength: 0.0,
+            shoulderStrength: 0.0,
+            shoulderLength: 0.0,
+            shoulderAngle: 0.0,
             gamma: 1.0,
             postGamma: 1.0
         };

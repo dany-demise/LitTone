@@ -47,16 +47,13 @@ self.onmessage = async (event) => {
         throw new Error('Image processing failed (NULL pointer)');
       }
 
-      let pp = Module._getParams();
-      console.log(pp);
+      let cameraInfo = Module._getCameraInfo();
 
-      // Extract metadata
       const width = Module.HEAP32[widthPtr >> 2];
       const height = Module.HEAP32[heightPtr >> 2];
       const colors = Module.HEAP32[colorsPtr >> 2];
       const imageSize = Module.HEAP32[imageSizePtr >> 2];
 
-      // Convert the region of Wasm memory to a temporary typed array
       const tempImageData = new Uint16Array(
         Module.HEAPU16.buffer,
         imagePtr,
@@ -84,6 +81,7 @@ self.onmessage = async (event) => {
           height,
           colors,
           imageSize,
+          cameraInfo,
           buffer: processedImageData.buffer
         },
         [processedImageData.buffer] // Transferable
