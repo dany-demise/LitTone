@@ -234,6 +234,7 @@
     }
     #editor-panel {
         overflow: hidden;
+        background-color: #171717;
     }
     #image-canvas {
         position: absolute;

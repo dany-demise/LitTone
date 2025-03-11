@@ -125,6 +125,9 @@ struct Uniforms {
     luminanceWeightsG: f32,
     luminanceWeightsB: f32,
 	saturation: f32,
+    whiteBalanceR: f32,
+    whiteBalanceG: f32,
+    whiteBalanceB: f32,
 };
 
 @group(0) @binding(0) var<uniform> uniforms: Uniforms;
@@ -176,7 +179,10 @@ fn fragmentMain(@location(0) texCoord: vec2<f32>) -> @location(0) vec4<f32> {
     let B_hdr = (dataArray[index + 2u] - uniforms.hdrMin) / (uniforms.hdrMax - uniforms.hdrMin);
 
     let rgb = eval_color(vec3(R_hdr, G_hdr, B_hdr), uniforms);
-    return vec4<f32>(rgb, 1.0);
+    return vec4<f32>(rgb.x * uniforms.whiteBalanceR,
+                     rgb.y * uniforms.whiteBalanceG,
+                     rgb.z * uniforms.whiteBalanceB,
+                     1.0);
 }`
 
 
@@ -210,7 +216,7 @@ export class WebGPUImageProcessor {
             -1, 1, 0, 0,
             1, 1, 1, 0,
         ]);
-        
+
         this.vertexBuffer = this.device.createBuffer({
             size: vertices.byteLength,
             usage: GPUBufferUsage.VERTEX,
@@ -246,22 +252,22 @@ export class WebGPUImageProcessor {
 
     }
 
-    setTonemapCanvasContext(canvas: HTMLCanvasElement, width:number, height:number) {
+    setTonemapCanvasContext(canvas: HTMLCanvasElement, width: number, height: number) {
         this.width = width;
         this.height = height;
-        if (!this.tonemapCanvasContext) {
-            canvas.width = width;
-            canvas.height = height;
-            this.tonemapCanvasContext = canvas.getContext('webgpu') as GPUCanvasContext;
-            const canvasFormat = navigator.gpu.getPreferredCanvasFormat();
-            if (this.device) {
-                this.tonemapCanvasContext.configure({
-                    device: this.device,
-                    format: canvasFormat,
-                    alphaMode: 'premultiplied',
-                });
-            }
+        canvas.width = width;
+        canvas.height = height;
+        this.tonemapCanvasContext = canvas.getContext('webgpu') as GPUCanvasContext;
+        const canvasFormat = navigator.gpu.getPreferredCanvasFormat();
+        if (this.device) {
+            this.tonemapCanvasContext.configure({
+                device: this.device,
+                format: canvasFormat,
+                alphaMode: 'premultiplied',
+            });
         }
+        // Set number of tiles
+        this.numberOfTiles = this.getNumberOfTiles();
     }
 
     getNumberOfTiles(): number {
@@ -417,7 +423,7 @@ export class WebGPUImageProcessor {
         }
 
         // const uint16Array = new Float16Array([1, 2, 3, 65535]);
-        
+
         // console.log(inputArray);
 
         await this.hableFilmicTonemap.load();
@@ -458,7 +464,7 @@ export class WebGPUImageProcessor {
 
             // Create a uniform buffer with (width, height, lowerBound, upperBound, gamma)
             const uniformBuffer = this.device.createBuffer({
-                size: 11 * 4, // 11 floats * 4 bytes
+                size: 14 * 4, // 11 floats * 4 bytes
                 usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
                 mappedAtCreation: true,
             });
@@ -473,7 +479,10 @@ export class WebGPUImageProcessor {
                 shaderParams.luminanceWeights[0],
                 shaderParams.luminanceWeights[1],
                 shaderParams.luminanceWeights[2],
-                shaderParams.saturation
+                shaderParams.saturation,
+                params.redWhiteBalance,
+                params.greenWhiteBalance,
+                params.blueWhiteBalance,
             ]);
             uniformBuffer.unmap();
 

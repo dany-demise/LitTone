@@ -26,6 +26,7 @@ export class Controller {
     private _rawImage: RawImage | undefined;
     private wGpuImgProc: WebGPUImageProcessor = new WebGPUImageProcessor();
     private actionManager = ActionManager.getInstance();
+    private hableFilmicParams: HableFilmicParams = this.getDefaultHableFilmicParams();
 
     // Controller methods
     get rawImage(): RawImage | undefined {
@@ -41,10 +42,12 @@ export class Controller {
                 canvas, this._rawImage.width, this._rawImage.height
             );
         }
+        // Activate Reset zoom button on top
+        this.callStoreFunc('activateResetZoomButton');
     }
 
-    async generateTonemapHableFilmic(params: HableFilmicParams) {
-        this.actionManager.pushAction(() => this.generateTonemapHableFilmicReal(params));
+    async generateTonemapHableFilmic() {
+        this.actionManager.pushAction(() => this.generateTonemapHableFilmicReal(structuredClone(this.hableFilmicParams)));
     }
 
     async generateTonemapHableFilmicReal(params: HableFilmicParams) {
@@ -53,5 +56,27 @@ export class Controller {
                 this._rawImage.data, params
             );
         }
+    }
+
+    setHableFilmicParams(params:HableFilmicParams) {
+        this.hableFilmicParams = params;
+    }
+
+    getDefaultHableFilmicParams() {
+        return {
+            saturation: 1.0,
+            exposureBias: 0.0,
+            contrast: 1.0,
+            redWhiteBalance: 1.0,
+            greenWhiteBalance: 1.0,
+            blueWhiteBalance: 1.0,
+            toeStrength: 0.25,
+            toeLength: 0.5,
+            shoulderStrength: 0.25,
+            shoulderLength: 0.5,
+            shoulderAngle: 0.25,
+            gamma: 1.0,
+            postGamma: 1.0
+        };
     }
 }

@@ -2,6 +2,7 @@
 	// @ts-ignore
 	import { onMount, tick, getContext, setContext } from 'svelte';
 	import { Controller } from '$lib/domain/controller';
+	import ExifReader from 'exifreader';
 	// import zip from "$lib/domain/utils/zip";
 
 	/**
@@ -32,7 +33,11 @@
 	let librawWorker;
 
 	onMount(() => {
+		showDropImageHereText();
 		controller = Controller.getInstance();
+		controller.globalStore.set('showImageLoader', showImageLoader);
+		controller.globalStore.set('showDropImageHereText', showDropImageHereText);
+
 		dropzone = document.getElementById('dropzone');
 		dropzoneText = document.getElementById('dropzone-text');
 		gridContainer = document.getElementById('gridContainer');
@@ -63,6 +68,7 @@
 		dropzone?.addEventListener('drop', async (e) => {
 			dropzone?.classList.remove('dragover');
 			const files = e.dataTransfer?.files;
+			showImageLoader();
 			if (files) {
 				processFiles(files);
 			}
@@ -73,6 +79,8 @@
 		});
 
 		fileInput?.addEventListener('change', async (e) => {
+			// Turn on loader
+			showImageLoader();
 			// @ts-ignore
 			const files = e.target.files;
 			if (files) {
@@ -99,22 +107,10 @@
 				//  insere le thumbnail dans la dropzone
 				await insertThumbnailImage();
 				// genere une premiere tonemap avec parametres par defaut
-				const defaultHableParams = {
-					saturation: 1.0,
-					exposureBias: 0.0,
-					contrast: 1.0,
-					toeStrength: 0.0,
-					toeLength: 0.5,
-					shoulderStrength: 0.0,
-					shoulderLength: 0.5,
-					shoulderAngle: 0.0,
-					gamma: 1.0,
-					postGamma: 1.0
-				};
-				controller.generateTonemapHableFilmic(defaultHableParams);
-        // Configurer les parametres d affichage et afficher l image
-        controller.callStoreFunc('resetZoom');
-        controller.callStoreFunc('showImagePanel');
+				controller.generateTonemapHableFilmic();
+				// Configurer les parametres d affichage et afficher l image
+				controller.callStoreFunc('resetZoom');
+				controller.callStoreFunc('showImagePanel');
 
 				// outputDiv.textContent = `Processed Image: ${width} x ${height}, Colors=${colors}, Size=${imageSize} bytes`;
 			} else if (type === 'error') {
@@ -133,6 +129,8 @@
 	function processFiles(files) {
 		// If we drop or select new files, add them to the global array:
 		Array.from(files).forEach(async (file) => {
+			// const exif = await getExifData(file);
+			// console.log(exif);
 			if (file.type.startsWith('image/')) {
 				try {
 					const arrayBuffer = await file.arrayBuffer();
@@ -143,7 +141,7 @@
 						[arrayBuffer] // Transfer ownership to worker
 					);
 				} catch (err) {
-					// outputDiv.textContent = `Error reading file: ${err}`;
+					console.log(`Error reading file: ${err}`);
 				}
 				currentFiles.push(file);
 			}
@@ -330,14 +328,57 @@
 
 			// Reset any bracket info displayed
 			controller.callStoreFunc('clearImagePanel');
+			// Desactiver bouton Reset zoom
+			controller.callStoreFunc('deactivateResetZoomButton');
+			// Afficher texte dans la dropzone
+			showDropImageHereText();
 		}
+	}
+
+	let imageIsLoading = false; // set to true to show the loader
+	function showImageLoader() {
+		imageIsLoading = true;
+	}
+	function showDropImageHereText() {
+		imageIsLoading = false;
+	}
+
+	/**
+	 * @param {File} file
+	 * @returns {Promise<object>}
+	 */
+	function getExifData(file) {
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader();
+
+			reader.onload = function (event) {
+				try {
+					// @ts-ignore
+					const arrayBuffer = event.target.result;
+					const tags = ExifReader.load(arrayBuffer);
+					resolve(tags);
+				} catch (error) {
+					reject(error);
+				}
+			};
+
+			reader.onerror = function (error) {
+				reject(error);
+			};
+
+			reader.readAsArrayBuffer(file);
+		});
 	}
 </script>
 
 <div style="padding: 0 10.22px 0 7.22px;">
 	<div id="dropzone">
 		<div id="dropzone-text">
-			<small>Drop image here<br />or click to add</small>
+			{#if imageIsLoading}
+				<small class="loader small"></small>
+			{:else}
+				<small>Drop image here<br />or click to add</small>
+			{/if}
 		</div>
 		<div id="gridContainer"></div>
 	</div>
@@ -345,7 +386,7 @@
 		type="file"
 		id="fileInput"
 		multiple
-		accept=".3fr,.ari,.arw,.bay,.crw,.cr2,.cap,.dcr,.dng,.drf,.eip,.erf,.fff,.iiq,.k25,.kdc,.mdc,.mef,.mos,.mrw,.nef,.nrw,.obm,.orf,.pef,.ptx,.pxn,.r3d,.raf,.raw,.rw2,.rwl,.rwz,.sr2,.srf,.srw,.x3f,.hdr,.exr"
+		accept=".tiff,.kdc,.3fr,.ari,.arw,.bay,.crw,.cr2,.cap,.dcr,.dng,.drf,.eip,.erf,.fff,.iiq,.k25,.kdc,.mdc,.mef,.mos,.mrw,.nef,.nrw,.obm,.orf,.pef,.ptx,.pxn,.r3d,.raf,.raw,.rw2,.rwl,.rwz,.sr2,.srf,.srw,.x3f,.hdr,.exr"
 		style="display:none;"
 	/>
 	<div style="margin: 10 10 10 10; padding-top:10px;">
@@ -353,7 +394,7 @@
 			on:click={clearImages}
 			href="#0"
 			class="small text-light clear-img-btn"
-			style="text-decoration:none; font-size:x-small">Clear images</a
+			style="text-decoration:none; font-size:x-small">Clear image</a
 		>
 	</div>
 
@@ -387,6 +428,7 @@
 
 <style>
 	@import '$lib/assets/css/left-button.css';
+	@import '$lib/assets/css/loader.css';
 
 	#dropzone {
 		width: 100%;
