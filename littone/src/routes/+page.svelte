@@ -17,8 +17,8 @@
 	onMount(() => {
 		// On commence par assigner le controlleur
 		controller = Controller.getInstance();
-		controller.globalStore.set("activateResetZoomButton", activateResetZoomButton);
-		controller.globalStore.set("deactivateResetZoomButton", deactivateResetZoomButton);
+		controller.globalStore.set('activateResetZoomButton', activateResetZoomButton);
+		controller.globalStore.set('deactivateResetZoomButton', deactivateResetZoomButton);
 
 		/**
 		 * A simple helper to find a target element from a parent using a selector.
@@ -126,14 +126,14 @@
 	}
 
 	function activateResetZoomButton() {
-		const resetZoomButton = document.getElementById("reset-zoom");
+		const resetZoomButton = document.getElementById('reset-zoom');
 		if (resetZoomButton) {
 			resetZoomButton.disabled = false;
 		}
 	}
 
 	function deactivateResetZoomButton() {
-		const resetZoomButton = document.getElementById("reset-zoom");
+		const resetZoomButton = document.getElementById('reset-zoom');
 		if (resetZoomButton) {
 			resetZoomButton.disabled = true;
 		}
@@ -145,11 +145,22 @@
 		rel="icon"
 		href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💡</text></svg>"
 	/>
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+	<link
+		rel="stylesheet"
+		href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+	/>
 	<title>LitTone</title>
 
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<script type="module"> // This is not used here but in webWorker, but still loaded for pre caching purpose
+		import createLibRawModule from './libraw/libraw.js';
+		async function loadWasm() {
+			await createLibRawModule(); // This may initialize the WASM module
+			console.log('LibRaw WASM module loaded.');
+		}
+		loadWasm();
+	</script>
 </svelte:head>
 
 <div class="container videoway" style="height: 100vh; width:100vw;">
@@ -159,26 +170,31 @@
 				<span style="color: #F6AA1C;">Lit</span>Tone💡
 			</div>
 		</a>
-		<hr/>
-		<LeftPanel/>
+		<hr />
+		<LeftPanel />
 	</aside>
 
 	<div class="resize-handle--x0" data-target=".left-sidebar"></div>
-	<main class="main" style="display: flex; flex-direction: column; height: 100%;overflow: hidden; background-color: #171717;">
+	<main
+		class="main"
+		style="display: flex; flex-direction: column; height: 100%;overflow: hidden; background-color: #171717;"
+	>
 		<div class="top-panel" style="padding:15px 7px 7px 7px; color:#eeeeee;">
 			<!-- <button class="top-button" disabled>Luminance map</button> -->
-			<button class="top-button" id="reset-zoom" disabled on:click={onResetZoom}>Reset zoom <i class="fa-solid fa-magnifying-glass"></i></button>
+			<button class="top-button" id="reset-zoom" disabled on:click={onResetZoom}
+				>Reset zoom <i class="fa-solid fa-magnifying-glass"></i></button
+			>
 			<!-- <button on:click={onThreeSixtyClick} class="top-button">360°</button> -->
 		</div>
 
 		<div class="editor-panel" style="flex: 1;">
-			<ImagePanel/>
+			<ImagePanel />
 		</div>
 	</main>
 
 	<div class="resize-handle--x1" data-target=".right-sidebar"></div>
 	<aside class="right-sidebar style-4">
-		<RightPanel/>
+		<RightPanel />
 	</aside>
 </div>
 
