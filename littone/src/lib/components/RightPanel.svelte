@@ -7,12 +7,14 @@
 
 	let controller;
 	let gui;
-
 	let hableParams;
+	let actions = {};
 
 	onMount(() => {
 		controller = Controller.getInstance();
 		hableParams = controller.getDefaultHableFilmicParams();
+		actions['saveAsJpg'] = async () => { await controller.saveCanvasAsJpg(); };
+
 
 		const imageParams = new GUI({
 			title: 'Image Parameters',
@@ -26,6 +28,11 @@
 
 		const toneCurve = new GUI({
 			title: 'Filmic tone curve',
+			container: document.getElementById('hable-filmic-params')
+		});
+
+		const actionButtons = new GUI({
+			title: 'Save',
 			container: document.getElementById('hable-filmic-params')
 		});
 
@@ -70,6 +77,7 @@
 		toneCurve.add(hableParams, 'gamma', 0.1, 3, 0.01).name('Gamma').onChange(applyTonemap);
 		toneCurve.add(hableParams, 'postGamma', 0.1, 3, 0.01).name('Post Gamma').onChange(applyTonemap);
 
+		actionButtons.add(actions, 'saveAsJpg').name('Save as JPG');
 		// Hide the main title element using JavaScript
 	});
 

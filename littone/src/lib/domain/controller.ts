@@ -47,14 +47,21 @@ export class Controller {
     }
 
     async generateTonemapHableFilmic() {
-        this.actionManager.pushAction(() => this.generateTonemapHableFilmicReal(structuredClone(this.hableFilmicParams)));
+        this.actionManager.pushAction(async () => await this.generateTonemapHableFilmicReal(structuredClone(this.hableFilmicParams)));
     }
 
     async generateTonemapHableFilmicReal(params: HableFilmicParams) {
         if (this._rawImage) {
-            this.wGpuImgProc.generateTonemapHableFilmicInTilesFromRaw(
+            return this.wGpuImgProc.generateTonemapHableFilmicInTilesFromRaw(
                 this._rawImage.data, params
             );
+        }
+    }
+
+    async saveCanvasAsJpg() {
+        await this.generateTonemapHableFilmicReal(structuredClone(this.hableFilmicParams));
+        if (this._rawImage) {
+            this.wGpuImgProc.saveCanvasAsJpg();
         }
     }
 

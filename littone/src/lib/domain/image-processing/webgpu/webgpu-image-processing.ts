@@ -1,5 +1,6 @@
 import { HableFilmicTonemap } from '$lib/domain/image-processing/filmic-hable-tonemap/filmic-hable-tonemap';
 import type { HableFilmicParams } from '$lib/domain/interfaces';
+import { Mnemonic } from '$lib/domain/utils/mnemonic';
 
 // Shader code
 const tonemapHableFilmicShaderCodeRaw2: string = `
@@ -556,7 +557,7 @@ export class WebGPUImageProcessor {
         this.device.queue.submit([commandEncoder.finish()]);
     }
 
-    saveTonemapCanvasAsPNG(): void {
+    saveCanvasAsJpg(): void {
         if (!this.tonemapCanvasContext) {
             console.error('No GPUCanvasContext available.');
             return;
@@ -570,12 +571,12 @@ export class WebGPUImageProcessor {
             const a = document.createElement('a');
             const url = URL.createObjectURL(blob);
             a.href = url;
-            a.download = 'img' + '.png'; // The filename for the downloaded image
+            a.download = (new Mnemonic()).getMnemonic() + '.jpg'; // The filename for the downloaded image
             a.style.display = 'none';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-        }, 'image/png');
+        }, 'image/jpeg');
     }
 }
